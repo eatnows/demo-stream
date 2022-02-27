@@ -288,4 +288,136 @@ public class StreamTest {
         assertThat(ordersInErrorStatusIn24hrs.get(0).getId()).isEqualTo(1002);
         assertThat(ordersInErrorStatusIn24hrs.get(1).getId()).isEqualTo(1004);
     }
+
+    @Test
+    void sortTest() {
+        List<Integer> numbers = Arrays.asList(3, -5, 7, 4);
+        List<Integer> sortedNumbers = numbers.stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+        assertThat(sortedNumbers.get(0)).isEqualTo(-5);
+        assertThat(sortedNumbers.get(1)).isEqualTo(3);
+        assertThat(sortedNumbers.get(2)).isEqualTo(4);
+        assertThat(sortedNumbers.get(3)).isEqualTo(7);
+    }
+
+    @Test
+    void sortTest2() {
+        User user1 = new User()
+                .setId(101)
+                .setName("Apple")
+                .setVerified(true)
+                .setEmailAddress("apple@email.com");
+        User user2 = new User()
+                .setId(102)
+                .setName("Kiwi")
+                .setVerified(false)
+                .setEmailAddress("kiwi@email.com");
+        User user3 = new User()
+                .setId(103)
+                .setName("Banana")
+                .setVerified(false)
+                .setEmailAddress("banana@email.com");
+        List<User> users = Arrays.asList(user1, user2, user3);
+        List<User> sortedUsers = users.stream()
+                .sorted((u1, u2) -> u1.getName().compareTo(u2.getName()))
+                .collect(Collectors.toList());
+
+        assertThat(sortedUsers.get(0).getName()).isEqualTo("Apple");
+        assertThat(sortedUsers.get(1).getName()).isEqualTo("Banana");
+        assertThat(sortedUsers.get(2).getName()).isEqualTo("Kiwi");
+    }
+
+    @Test
+    void sortTest3() {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        Order order1 = new Order()
+                .setId(1001)
+                .setStatus(Order.OrderStatus.CREATED)
+                .setCreatedByUserId(101)
+                .setCreatedAt(now.minusHours(4));
+        Order order2 = new Order()
+                .setId(1002)
+                .setStatus(Order.OrderStatus.ERROR)
+                .setCreatedByUserId(103)
+                .setCreatedAt(now.minusHours(1));
+        Order order3 = new Order()
+                .setId(1003)
+                .setStatus(Order.OrderStatus.PROCESSED)
+                .setCreatedByUserId(102)
+                .setCreatedAt(now.minusHours(36));
+        Order order4 = new Order()
+                .setId(1004)
+                .setStatus(Order.OrderStatus.ERROR)
+                .setCreatedByUserId(104)
+                .setCreatedAt(now.minusHours(15));
+        Order order5 = new Order()
+                .setId(1005)
+                .setStatus(Order.OrderStatus.IN_PROGRESS)
+                .setCreatedByUserId(101)
+                .setCreatedAt(now.minusHours(10));
+        List<Order> orders = Arrays.asList(order1, order2, order3, order4, order5);
+        List<Order> sortedOrders = orders.stream()
+                .sorted((o1, o2) -> o1.getCreatedAt().compareTo(o2.getCreatedAt()))
+                .collect(Collectors.toList());
+
+        assertThat(sortedOrders.get(0).getId()).isEqualTo(1003);
+        assertThat(sortedOrders.get(1).getId()).isEqualTo(1004);
+        assertThat(sortedOrders.get(2).getId()).isEqualTo(1005);
+        assertThat(sortedOrders.get(3).getId()).isEqualTo(1001);
+        assertThat(sortedOrders.get(4).getId()).isEqualTo(1002);
+    }
+
+    @Test
+    void distinctTest1() {
+        List<Integer> numbers = Arrays.asList(3, -5, 4, -5, 2, 3);
+        List<Integer> distinctNumbers = numbers.stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        assertThat(distinctNumbers.size()).isEqualTo(4);
+    }
+
+    @Test
+    void distinctTest2() {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        Order order1 = new Order()
+                .setId(1001)
+                .setStatus(Order.OrderStatus.CREATED)
+                .setCreatedByUserId(101)
+                .setCreatedAt(now.minusHours(4));
+        Order order2 = new Order()
+                .setId(1002)
+                .setStatus(Order.OrderStatus.ERROR)
+                .setCreatedByUserId(103)
+                .setCreatedAt(now.minusHours(1));
+        Order order3 = new Order()
+                .setId(1003)
+                .setStatus(Order.OrderStatus.PROCESSED)
+                .setCreatedByUserId(102)
+                .setCreatedAt(now.minusHours(36));
+        Order order4 = new Order()
+                .setId(1004)
+                .setStatus(Order.OrderStatus.ERROR)
+                .setCreatedByUserId(104)
+                .setCreatedAt(now.minusHours(15));
+        Order order5 = new Order()
+                .setId(1005)
+                .setStatus(Order.OrderStatus.IN_PROGRESS)
+                .setCreatedByUserId(101)
+                .setCreatedAt(now.minusHours(10));
+        List<Order> orders = Arrays.asList(order1, order2, order3, order4, order5);
+
+        List<Long> distinctOrders = orders.stream()
+                .map(Order::getCreatedByUserId)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
+        assertThat(distinctOrders.get(0)).isEqualTo(101);
+        assertThat(distinctOrders.get(1)).isEqualTo(102);
+        assertThat(distinctOrders.get(2)).isEqualTo(103);
+        assertThat(distinctOrders.get(3)).isEqualTo(104);
+    }
 }
