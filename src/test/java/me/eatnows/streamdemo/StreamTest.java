@@ -1,9 +1,11 @@
 package me.eatnows.streamdemo;
 
 import me.eatnows.streamdemo.filter.Order;
+import me.eatnows.streamdemo.filter.OrderLine;
 import me.eatnows.streamdemo.filter.User;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -419,5 +421,76 @@ public class StreamTest {
         assertThat(distinctOrders.get(1)).isEqualTo(102);
         assertThat(distinctOrders.get(2)).isEqualTo(103);
         assertThat(distinctOrders.get(3)).isEqualTo(104);
+    }
+
+    @Test
+    void flatMapTest1() {
+        String[][] cities = new String[][]{
+                {"Seoul", "Busan"},
+                {"San Francisco", "New York"},
+                {"Madrid", "Barcelona"}
+        };
+        Stream<String[]> cityStream = Arrays.stream(cities);
+        Stream<Stream<String>> cityStreamStream = cityStream.map(x -> Arrays.stream(x));
+        List<Stream<String>> cityStreamList = cityStreamStream.collect(Collectors.toList());
+
+        Stream<String[]> cityStream2 = Arrays.stream(cities);
+        Stream<String> flattenedCityStream = cityStream2.flatMap(x -> Arrays.stream(x));
+        List<String> flattenedCityList = flattenedCityStream.collect(Collectors.toList());
+
+        assertThat(flattenedCityList.get(0)).isEqualTo("Seoul");
+        assertThat(flattenedCityList.get(1)).isEqualTo("Busan");
+        assertThat(flattenedCityList.get(2)).isEqualTo("San Francisco");
+        assertThat(flattenedCityList.get(3)).isEqualTo("New York");
+        assertThat(flattenedCityList.get(4)).isEqualTo("Madrid");
+        assertThat(flattenedCityList.get(5)).isEqualTo("Barcelona");
+    }
+
+    @Test
+    void flatMapTest2() {
+        Order order1 = new Order()
+                .setId(1001)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine()
+                                .setId(10001)
+                                .setType(OrderLine.OrderLineType.PURCHASE)
+                                .setAmount(BigDecimal.valueOf(5000)),
+                        new OrderLine()
+                                .setId(10002)
+                                .setType(OrderLine.OrderLineType.PURCHASE)
+                                .setAmount(BigDecimal.valueOf(4000))
+                ));
+        Order order2 = new Order()
+                .setId(1002)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine()
+                                .setId(10003)
+                                .setType(OrderLine.OrderLineType.PURCHASE)
+                                .setAmount(BigDecimal.valueOf(2000)),
+                        new OrderLine()
+                                .setId(10004)
+                                .setType(OrderLine.OrderLineType.DISCOUNT)
+                                .setAmount(BigDecimal.valueOf(-1000))
+                ));
+        Order order3 = new Order()
+                .setId(1003)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine()
+                                .setId(10005)
+                                .setType(OrderLine.OrderLineType.PURCHASE)
+                                .setAmount(BigDecimal.valueOf(2000))
+                ));
+
+        List<Order> orders = Arrays.asList(order1, order2, order3);
+        List<OrderLine> mergeOrderLines = orders.stream() // Stream<Order>
+                .map(Order::getOrderLines)                  // Stream<List<OrderLine>>
+                .flatMap(List::stream)                      // Stream<OrderLine>
+                .collect(Collectors.toList());
+
+        assertThat(mergeOrderLines.get(0).getType()).isEqualTo(OrderLine.OrderLineType.PURCHASE);
+        assertThat(mergeOrderLines.get(1).getType()).isEqualTo(OrderLine.OrderLineType.PURCHASE);
+        assertThat(mergeOrderLines.get(2).getType()).isEqualTo(OrderLine.OrderLineType.PURCHASE);
+        assertThat(mergeOrderLines.get(3).getType()).isEqualTo(OrderLine.OrderLineType.DISCOUNT);
+        assertThat(mergeOrderLines.get(4).getType()).isEqualTo(OrderLine.OrderLineType.PURCHASE);
     }
 }
