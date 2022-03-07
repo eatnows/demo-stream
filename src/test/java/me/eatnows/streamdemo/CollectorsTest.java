@@ -1,7 +1,8 @@
 package me.eatnows.streamdemo;
 
 import me.eatnows.streamdemo.filter.Order;
-import me.eatnows.streamdemo.filter.User;
+import me.eatnows.streamdemo.partitioning.EmailService;
+import me.eatnows.streamdemo.partitioning.User;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -189,5 +190,48 @@ class CollectorsTest {
                                 Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
 
         System.out.println(orderStatusToSumOfAmountMap);
+    }
+
+    @Test
+    void partitioningByTest1() {
+        List<Integer> numbers = Arrays.asList(13, 2, 101, 203, 304, 402, 305, 349, 2312, 203);
+        Map<Boolean, List<Integer>> numberPartitions = numbers.stream()
+                .collect(Collectors.partitioningBy(number -> number % 2 == 0));
+        System.out.println("Even number: " + numberPartitions.get(true));
+        System.out.println("Odd number: " + numberPartitions.get(false));
+    }
+
+    @Test
+    void partitioningByTest2() {
+        User user1 = new User()
+                .setId(101)
+                .setName("Apple")
+                .setEmailAddress("apple@email.com")
+                .setFriendUserIds(Arrays.asList(201, 202, 203, 204, 211, 212, 213, 214));
+        User user2 = new User()
+                .setId(102)
+                .setName("Kiwi")
+                .setVerified(false)
+                .setEmailAddress("kiwi@email.com")
+                .setFriendUserIds(Arrays.asList(204, 205, 206));
+        User user3 = new User()
+                .setId(103)
+                .setName("Banana")
+                .setVerified(false)
+                .setEmailAddress("banana@email.com")
+                .setFriendUserIds(Arrays.asList(204, 205, 206, 218));
+        List<User> users = Arrays.asList(user1, user2, user3);
+
+        Map<Boolean, List<User>> userPartitions = users.stream()
+                .collect(Collectors.partitioningBy(user -> user.getFriendUserIds().size() > 5));
+
+        EmailService emailService = new EmailService();
+
+        for (User user : userPartitions.get(true)) {
+            emailService.sendPlayWithFriendsEmail(user);
+        }
+        for (User user : userPartitions.get(false)) {
+            emailService.sendMakeMoreFriendsEmail(user);
+        }
     }
 }
