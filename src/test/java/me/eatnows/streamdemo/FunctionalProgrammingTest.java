@@ -1,8 +1,15 @@
 package me.eatnows.streamdemo;
 
+import me.eatnows.streamdemo.composition.Order;
+import me.eatnows.streamdemo.composition.OrderLine;
+import me.eatnows.streamdemo.priceprocessor.OrderLineAggregationPriceProcessor;
+import me.eatnows.streamdemo.priceprocessor.TaxPriceProcessor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.matchers.Or;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -93,5 +100,44 @@ class FunctionalProgrammingTest {
     public boolean returnFalse() {
         System.out.println("Returning false");
         return false;
+    }
+
+    @Test
+    @DisplayName("Function Composition")
+    void test4() {
+        // compose와 andThen은 매개변수로 오는 Function을 먼저 계산하느냐 아니냐 차이
+        // compose(Function<?> function): 매개변수를 먼저 계산한 후 그 다음 Function을 계산한다.
+        // andThen(Function<?> function): andThen을 호출한 Function을 먼저 계산한 후 그 다음 매개변수의 Function을 실행한다.
+        // 보통 코드가 읽히는 순서가 딱맞는 andThen을 많이 활용한다.
+
+        Function<Integer, Integer> multiplyByTwo = x -> 2 * x;
+        Function<Integer, Integer> addTen = x -> x + 10;
+
+        Function<Integer, Integer> composedFunction = multiplyByTwo.andThen(addTen);
+        Integer result1 = composedFunction.apply(3);
+
+        assertThat(result1).isEqualTo(16);
+    }
+
+    @Test
+    void test5() {
+        Order unprocessedOrder = new Order()
+                .setId(1001)
+                .setOrderLines(Arrays.asList(
+                        new OrderLine().setAmount(BigDecimal.valueOf(1000)),
+                        new OrderLine().setAmount(BigDecimal.valueOf(2000))));
+
+        List<Function<Order, Order>> priceProcessor = getPriceProcessor(unprocessedOrder);
+
+        Function<Order, Order> mergedPriceProcessor = priceProcessor.stream()
+                .reduce(Function.identity(), Function::andThen);
+
+        Order processedOrder = mergedPriceProcessor.apply(unprocessedOrder);
+        System.out.println(processedOrder);
+    }
+
+    public List<Function<Order, Order>> getPriceProcessor(Order order) {
+        return Arrays.asList(new OrderLineAggregationPriceProcessor(),
+                new TaxPriceProcessor(new BigDecimal("9.375")));
     }
 }
