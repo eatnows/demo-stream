@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @ToString
 public class User {
@@ -52,33 +53,18 @@ public class User {
     public static class Builder {
         private int id;
         private String name;
-        private String emailAddress;
-        private boolean isVerified;
-        private LocalDateTime createdAt;
-        private List<Integer> friendUserIds = new ArrayList<>();
+        public String emailAddress;
+        public boolean isVerified;
+        public LocalDateTime createdAt;
+        public List<Integer> friendUserIds = new ArrayList<>();
 
         private Builder(int id, String name) {
             this.id = id;
             this.name = name;
         }
 
-        public Builder withEmailAddress(String emailAddress) {
-            this.emailAddress = emailAddress;
-            return this;
-        }
-
-        public Builder withVerified(boolean isVerified) {
-            this.isVerified = isVerified;
-            return this;
-        }
-
-        public Builder withCreatedAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public Builder withFriendsUserIds(List<Integer> friendUserIds) {
-            this.friendUserIds = friendUserIds;
+        public Builder with(Consumer<Builder> consumer) {
+            consumer.accept(this);
             return this;
         }
 
