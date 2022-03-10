@@ -97,6 +97,45 @@ public class DesignPatternTest {
                 .filter(User::isVerified)
                 .filter(user -> user.getFriendUserIds().size() > 5)
                 .forEach(emailSender::sendEmail);
+    }
 
+    @Test
+    @DisplayName("Template Method Pattern1")
+    void templateMethodPatternTest1() {
+        User user1 = User.builder(1, "Apple")
+                .with(builder -> {
+//                    builder.emailAddress = "apple@email.com";
+                    builder.isVerified = false;
+                    builder.friendUserIds = Arrays.asList(201, 202, 203, 204, 211, 212, 213, 214);
+                }).build();
+
+        UserService userService = new UserService();
+        InternalUserService internalUserService = new InternalUserService();
+
+//        userService.createUser(user1);
+        internalUserService.createUser(user1);
+    }
+
+    @Test
+    @DisplayName("Template Method Pattern2")
+    void templateMethodPatternTest2() {
+        // 클래스를 만들지 않고 함수형 프로그래밍을 이용하여 템플릿을 만듦
+        User user1 = User.builder(1, "Apple")
+                .with(builder -> {
+                    builder.emailAddress = "apple@email.com";
+                    builder.isVerified = false;
+                    builder.friendUserIds = Arrays.asList(201, 202, 203, 204, 211, 212, 213, 214);
+                }).build();
+
+        UserServiceFunctionalWay userServiceFunctionalWay = new UserServiceFunctionalWay(
+                user -> {
+                    System.out.println("Validating user " + user.getName());
+                    return user.getName() != null && user.getEmailAddress().isPresent();
+                },
+                user -> {
+                    System.out.println("Writing user " + user.getName() + " to DB");
+                }
+        );
+        userServiceFunctionalWay.createUser(user1);
     }
 }
