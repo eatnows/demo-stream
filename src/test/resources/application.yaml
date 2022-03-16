@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:tc:mariadb:10.4.21://localhost:3306/tdd
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    dbcp2:
+      driver-class-name: org.mariadb.jdbc.Driver
+  sql:
+    init:
+      mode: always
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    database: mysql
